@@ -142,12 +142,15 @@ var file_currency_proto_rawDesc = []byte{
 	0x6f, 0x6e, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x0b, 0x44, 0x65, 0x73, 0x74, 0x69, 0x6e,
 	0x61, 0x74, 0x69, 0x6f, 0x6e, 0x22, 0x22, 0x0a, 0x0c, 0x52, 0x61, 0x74, 0x65, 0x52, 0x65, 0x73,
 	0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x12, 0x0a, 0x04, 0x72, 0x61, 0x74, 0x65, 0x18, 0x01, 0x20,
-	0x01, 0x28, 0x02, 0x52, 0x04, 0x72, 0x61, 0x74, 0x65, 0x32, 0x32, 0x0a, 0x08, 0x43, 0x75, 0x72,
+	0x01, 0x28, 0x02, 0x52, 0x04, 0x72, 0x61, 0x74, 0x65, 0x32, 0x64, 0x0a, 0x08, 0x43, 0x75, 0x72,
 	0x72, 0x65, 0x6e, 0x63, 0x79, 0x12, 0x26, 0x0a, 0x07, 0x47, 0x65, 0x74, 0x52, 0x61, 0x74, 0x65,
 	0x12, 0x0c, 0x2e, 0x52, 0x61, 0x74, 0x65, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x0d,
-	0x2e, 0x52, 0x61, 0x74, 0x65, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x42, 0x0d, 0x5a,
-	0x0b, 0x2e, 0x2f, 0x3b, 0x63, 0x75, 0x72, 0x72, 0x65, 0x6e, 0x63, 0x79, 0x62, 0x06, 0x70, 0x72,
-	0x6f, 0x74, 0x6f, 0x33,
+	0x2e, 0x52, 0x61, 0x74, 0x65, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x30, 0x0a,
+	0x0d, 0x47, 0x65, 0x74, 0x53, 0x74, 0x72, 0x65, 0x61, 0x6d, 0x52, 0x61, 0x74, 0x65, 0x12, 0x0c,
+	0x2e, 0x52, 0x61, 0x74, 0x65, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x0d, 0x2e, 0x52,
+	0x61, 0x74, 0x65, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x28, 0x01, 0x30, 0x01, 0x42,
+	0x0d, 0x5a, 0x0b, 0x2e, 0x2f, 0x3b, 0x63, 0x75, 0x72, 0x72, 0x65, 0x6e, 0x63, 0x79, 0x62, 0x06,
+	0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
 }
 
 var (
@@ -169,9 +172,11 @@ var file_currency_proto_goTypes = []interface{}{
 }
 var file_currency_proto_depIdxs = []int32{
 	0, // 0: Currency.GetRate:input_type -> RateRequest
-	1, // 1: Currency.GetRate:output_type -> RateResponse
-	1, // [1:2] is the sub-list for method output_type
-	0, // [0:1] is the sub-list for method input_type
+	0, // 1: Currency.GetStreamRate:input_type -> RateRequest
+	1, // 2: Currency.GetRate:output_type -> RateResponse
+	1, // 3: Currency.GetStreamRate:output_type -> RateResponse
+	2, // [2:4] is the sub-list for method output_type
+	0, // [0:2] is the sub-list for method input_type
 	0, // [0:0] is the sub-list for extension type_name
 	0, // [0:0] is the sub-list for extension extendee
 	0, // [0:0] is the sub-list for field type_name
@@ -242,6 +247,7 @@ const _ = grpc.SupportPackageIsVersion6
 type CurrencyClient interface {
 	// GetRate returns the exchange rate for the two provided currency codes
 	GetRate(ctx context.Context, in *RateRequest, opts ...grpc.CallOption) (*RateResponse, error)
+	GetStreamRate(ctx context.Context, opts ...grpc.CallOption) (Currency_GetStreamRateClient, error)
 }
 
 type currencyClient struct {
@@ -261,10 +267,42 @@ func (c *currencyClient) GetRate(ctx context.Context, in *RateRequest, opts ...g
 	return out, nil
 }
 
+func (c *currencyClient) GetStreamRate(ctx context.Context, opts ...grpc.CallOption) (Currency_GetStreamRateClient, error) {
+	stream, err := c.cc.NewStream(ctx, &_Currency_serviceDesc.Streams[0], "/Currency/GetStreamRate", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &currencyGetStreamRateClient{stream}
+	return x, nil
+}
+
+type Currency_GetStreamRateClient interface {
+	Send(*RateRequest) error
+	Recv() (*RateResponse, error)
+	grpc.ClientStream
+}
+
+type currencyGetStreamRateClient struct {
+	grpc.ClientStream
+}
+
+func (x *currencyGetStreamRateClient) Send(m *RateRequest) error {
+	return x.ClientStream.SendMsg(m)
+}
+
+func (x *currencyGetStreamRateClient) Recv() (*RateResponse, error) {
+	m := new(RateResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 // CurrencyServer is the server API for Currency service.
 type CurrencyServer interface {
 	// GetRate returns the exchange rate for the two provided currency codes
 	GetRate(context.Context, *RateRequest) (*RateResponse, error)
+	GetStreamRate(Currency_GetStreamRateServer) error
 }
 
 // UnimplementedCurrencyServer can be embedded to have forward compatible implementations.
@@ -273,6 +311,9 @@ type UnimplementedCurrencyServer struct {
 
 func (*UnimplementedCurrencyServer) GetRate(context.Context, *RateRequest) (*RateResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetRate not implemented")
+}
+func (*UnimplementedCurrencyServer) GetStreamRate(Currency_GetStreamRateServer) error {
+	return status.Errorf(codes.Unimplemented, "method GetStreamRate not implemented")
 }
 
 func RegisterCurrencyServer(s *grpc.Server, srv CurrencyServer) {
@@ -297,6 +338,32 @@ func _Currency_GetRate_Handler(srv interface{}, ctx context.Context, dec func(in
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Currency_GetStreamRate_Handler(srv interface{}, stream grpc.ServerStream) error {
+	return srv.(CurrencyServer).GetStreamRate(&currencyGetStreamRateServer{stream})
+}
+
+type Currency_GetStreamRateServer interface {
+	Send(*RateResponse) error
+	Recv() (*RateRequest, error)
+	grpc.ServerStream
+}
+
+type currencyGetStreamRateServer struct {
+	grpc.ServerStream
+}
+
+func (x *currencyGetStreamRateServer) Send(m *RateResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+func (x *currencyGetStreamRateServer) Recv() (*RateRequest, error) {
+	m := new(RateRequest)
+	if err := x.ServerStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 var _Currency_serviceDesc = grpc.ServiceDesc{
 	ServiceName: "Currency",
 	HandlerType: (*CurrencyServer)(nil),
@@ -306,6 +373,13 @@ var _Currency_serviceDesc = grpc.ServiceDesc{
 			Handler:    _Currency_GetRate_Handler,
 		},
 	},
-	Streams:  []grpc.StreamDesc{},
+	Streams: []grpc.StreamDesc{
+		{
+			StreamName:    "GetStreamRate",
+			Handler:       _Currency_GetStreamRate_Handler,
+			ServerStreams: true,
+			ClientStreams: true,
+		},
+	},
 	Metadata: "currency.proto",
 }
