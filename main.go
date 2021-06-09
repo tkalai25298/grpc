@@ -7,6 +7,7 @@ import (
 
 	"github.com/hashicorp/go-hclog"
 	protos "github.com/learn_grpc/protos/currency"
+	data "github.com/learn_grpc/data"
 	"github.com/learn_grpc/server"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
@@ -15,11 +16,19 @@ import (
 func main() {
 	log := hclog.Default()
 
+	//getting all the rates from ecb based on euro
+	rates,err := data.NewRates(log)
+
+	if err != nil {
+		log.Error("Unable to generate rates", "error", err)
+		os.Exit(1)
+	}
+
 	// create a new gRPC server, use WithInsecure to allow http connections
 	gs := grpc.NewServer()
 
 	// create an instance of the Currency server
-	c := server.NewCurrency(log)
+	c := server.NewCurrency(log,rates)
 
 	// register the currency server
 	protos.RegisterCurrencyServer(gs, c)
