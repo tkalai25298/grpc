@@ -22,5 +22,11 @@ message RateRequest {
 // rate which is a floating point number and can be used to convert between the 
 // two currencies specified in the request.
 message RateResponse {
-    float rate = 1;
+
+    // Base is the base currency code for the rate
+    string Base = 1;
+    // Destination is the destination currency code for the rate
+    string Destination = 2;
+
+    double rate = 3;
 }
