@@ -7,6 +7,8 @@ import (
 
 	"github.com/hashicorp/go-hclog"
 	protos "github.com/learn_grpc/protos/currency"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 // Currency is a gRPC server it implements the methods defined by the CurrencyServer interface
@@ -57,6 +59,29 @@ func (c *Currency) handleSubscriptions() {
 // GetRate implements the CurrencyServer GetRate method and returns the currency exchange rate
 // for the two given currencies.
 func (c *Currency) GetRate(ctx context.Context, rr *protos.RateRequest) (*protos.RateResponse, error) {
+
+	//input validation and sending error codes
+	if rr.GetBase() == rr.GetDestination() {
+		// err := status.Errorf(
+		// 	codes.InvalidArgument,
+		// 	"base %v and destination currency should not be the same %v",
+		// 	rr.GetBase(),rr.GetDestination(),
+		// )
+		// return nil,err
+	
+		err := status.Newf(
+			codes.InvalidArgument,
+			"Base rate %s can not be equal to destination rate %s",
+			rr.Base,
+			rr.Destination,
+		)
+
+		err,details := err.WithDetails(rr)
+		if details != nil {
+			return nil,details
+		}
+		return nil, err.Err()
+	}
 	c.log.Info("Handle request for GetRate", "base", rr.GetBase(), "dest", rr.GetDestination())
 	return &protos.RateResponse{Rate: 0.5}, nil
 }
